@@ -1,5 +1,6 @@
-TAIWAN_HOUSE_HOME='http://www.twhg.com.tw/object_list-A.php',
+TAIWAN_HOUSE_HOME='http://www.twhg.com.tw/object_list-A.php'
 TAIWAN_HOUSE_ROOT='http://www.twhg.com.tw/api/SearchList.php?io5='
+TAIWAN_HOUSE_HOST='http://www.twhg.com.tw'
 
 TAIWAN_HOUSE_CITIES = [
     '台北市',
@@ -27,11 +28,15 @@ TAIWAN_HOUSE_CITIES = [
 
 # use for post
 TAIWAN_HOUSE_PAYLOAD = {
-    'city': '台北市',
-    'usIde': '9',
-    'nowpag': '2',
-    'paydumeyes': '1',
-    'obj' : 'Preset',
+    'sale': {
+        'city': '台北市',
+        'usIde': '9',
+        'nowpag': '2',
+        'paydumeyes': '1',
+        'obj' : 'Preset',
+    },
+    'rent': {
+    }
 }
 
 TAIWAN_HOUSE_HEADERS = {

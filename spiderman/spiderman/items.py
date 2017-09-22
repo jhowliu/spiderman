@@ -7,8 +7,21 @@
 
 import scrapy
 
-
-class SpidermanItem(scrapy.Item):
+class HouseInfos(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    CaseNo  = scrapy.Field()
+    CaseURL = scrapy.Field()
+    CaseName = scrapy.field()
+    Address = scrapy.field()
+    City = scrapy.field()
+    Zip = scrapy.field()
+    Road = scrapy.field()
+    Living = scrapy.field()
+    Bed = scrapy.field()
+    Bath = scrapy.field()
+    Layout = scrapy.field()
+    BuildingPing = scrapy.field()
+    Latitude = scrapy.field()
+    Longtitude = scrapy.field()
+    Price = scrapy.field()
