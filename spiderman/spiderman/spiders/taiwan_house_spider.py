@@ -88,4 +88,4 @@ class TaiwanSpider(scrapy.Spider):
             'Price': price
         }
 
-        yield items
+        yield HouseInfos(items)
