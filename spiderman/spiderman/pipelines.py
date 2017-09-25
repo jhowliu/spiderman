@@ -7,8 +7,10 @@
 import logging
 
 from spiderman.items import HouseInfos
+from spiderman.orm.control import insert_items
 
 class SpidermanPipeline(object):
     def process_item(self, item, spider):
-        logging.info("Coming items: %s\n" % item)
+        #logging.info("Coming items: %s\n" % item)
+        insert_items(item)
         return item

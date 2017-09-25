@@ -1,3 +1,4 @@
+# -*- coding=utf-8 -*-
 TAIWAN_HOUSE_HOME='http://www.twhg.com.tw/object_list-A.php'
 TAIWAN_HOUSE_ROOT='http://www.twhg.com.tw/api/SearchList.php?io5='
 TAIWAN_HOUSE_HOST='http://www.twhg.com.tw'
