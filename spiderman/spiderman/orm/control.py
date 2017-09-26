@@ -2,32 +2,40 @@ import logging
 
 from spiderman.orm.schema import *
 from spiderman.orm.engine import sess
-{
-'Address': u'\u57fa\u9686\u5e02\u4e2d\u6b63\u5340\u65b0\u8c50\u8857',
-'Bath': u'2.0',
-'Bed': u'3',
-'BuildingPing': u'39.32',
-'CaseName': u'\u666e\u7f85\u65fa\u4e16\u6642\u5c1a\u5b85',
-'CaseNo': u'TC01643443',
-'CaseURL': 'http://www.twhg.com.tw/house_TC01643443.html',
-'City': u'\u57fa\u9686\u5e02',
-'Latitude': u'25.1377277',
-'Layout': u'3\u623f2\u5ef32.0\u885b',
-'Living': u'2',
-'Longtitude': u'121.7855072',
-'Price': u'698.0',
-'Road': u'\u65b0\u8c50\u8857',
-'Zip': u'\u4e2d\u6b63\u5340'
-}
+from spiderman.orm.util import is_exist
 
 def insert_items(item):
 
-    value = HouseInfo1(CaseName=item.CaseName,
-                       CaseNo=item.CaseNo,
-                       SimpAddress=item.Address,
-                       CaseUrl=item.CaseUrl,
-                       City=item.City,
-                       Road=item.Road,
-                       District=item.Zip,)
+    logging.info("<INSERT> - %s" % item['ID'])
 
-    logging.info("<INSERT> - %s" % item)
+    value = HouseInfo1(idx=item['ID'],
+                       RorS=item['RorS'],
+                       KeyinDate=item['DateTime'],
+                       CaseName=item['CaseName'],
+                       CaseNo=item['CaseNo'],
+                       CaseFrom=item['CaseFrom'],
+                       CaseUse=item['CaseType'],
+                       SimpAddress=item['Address'],
+                       CaseUrl=item['CaseURL'],
+                       City=item['City'],
+                       Road=item['Road'],
+                       District=item['Zip'],
+                       HouseLayout=item['Layout'],
+                       Rm=item['Bed'],
+                       LivingRm=item['Living'],
+                       BathRm=item['Bath'],
+                       TotalPrice=item['Price'],
+                       OrigPrice=item['Price'],
+                       Unit=item['Unit'],
+                       BuildPin=item['BuildingPing'],
+                       LandPin=item['LandPing'],
+                       Lat=item['Latitude'],
+                       Lng=item['Longtitude'],
+                       HouseAge=item['HouseAge'])
+
+    #row = is_exist(HouseInfo1, item['ID'])
+    row = sess.query(HouseInfo1).filter_by(idx=item['ID']).first()
+
+    if (not row):
+        sess.add(value)
+        sess.commit()

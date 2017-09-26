@@ -1,8 +1,32 @@
-def taiwan_sale(infos):
+# -*- coding=utf-8 -*-
+import re
+import time
+import hashlib
+
+CASEFROM = "Taiwan"
+def taiwan_sale(response):
+    global CASEFROM
+
+    case_type = ""
+    house_age = ""
+
+    for list_ in response.css('div.object-list li'):
+        text = (''.join(list_.css('::text').extract()).strip())
+
+        if u'類型 :' in text:
+            case_type = text.replace(u'類型 :', '').strip()
+        if u'屋齡 :' in text:
+            house_age = text.replace(u'屋齡 :', '').strip()
+
+    infos = response.meta['infos']
+
+    date = time.strftime("%Y-%m-%d")
+    case_name = infos['tit']
+    case_no = infos['no']
+
+    id_ = hashlib.sha1("%s-%s-%s" % (CASEFROM, case_no, date)).hexdigest()
 
     price = infos['pay']
-    case_no = infos['no']
-    case_name = infos['tit']
     road = infos['add']
     city = infos['city']
     district = infos['area']
@@ -20,12 +44,17 @@ def taiwan_sale(infos):
     lat = infos['x']
     lng = infos['y']
 
-    url = infos['CaseURL']
+    url = response.url
 
     items = {
+        'ID': id_,
+        'DateTime': date,
         'CaseNo': case_no,
         'CaseURL': url,
+        'CaseFrom': CASEFROM,
         'CaseName': case_name,
+        'CaseType': case_type,
+        'HouseAge': house_age,
         'Address': addr,
         'City': city,
         'Zip': district,
@@ -35,10 +64,12 @@ def taiwan_sale(infos):
         'Bath': num_of_bath,
         'Layout': layout,
         'BuildingPing': building_pings,
+        'LandPing': landing_pings,
         'Latitude': lat,
         'Longtitude': lng,
-        'Price': price
-        'RorS': u'出售'
+        'Price': price,
+        'Unit': u'萬/元',
+        'RorS': u'出售',
     }
 
     return items

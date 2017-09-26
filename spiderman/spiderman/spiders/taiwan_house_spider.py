@@ -16,7 +16,7 @@ class TaiwanSpider(scrapy.Spider):
     def start_requests(self):
         payload = config.TAIWAN_HOUSE_PAYLOAD['sale']
 
-        for ix, city in enumerate(config.TAIWAN_HOUSE_CITIES[:2]):
+        for ix, city in enumerate(config.TAIWAN_HOUSE_CITIES):
             payload['city'] = city
             meta = { 'payload': payload }
 
@@ -30,7 +30,7 @@ class TaiwanSpider(scrapy.Spider):
 
         final_page = data['toPag']
 
-        for page_num in range(1, 3):
+        for page_num in range(1, final_page+1):
             payload['nowpag'] = str(page_num)
 
             yield FormRequest(url=response.url, callback=self.parse_entities, formdata=payload, \
@@ -41,18 +41,18 @@ class TaiwanSpider(scrapy.Spider):
         data = json.loads(response.body.decode('utf-8'))
         entities = data['obj']
 
-        for ix, entry in enumerate(entities[:1]):
+        for ix, entry in enumerate(entities):
             houseid = entry['no']
             meta = { 'infos': entry }
 
             url = config.TAIWAN_HOUSE_HOST+'/house_'+houseid+'.html'
+            logging.info("start crawl %s." % url)
             yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta)
 
     def parse_fields(self, response):
         infos = response.meta['infos']
-        infos['CaseURL'] = response.url
         logging.info("start parsing %s, title: %s" % (response.url, infos['tit']))
 
-        tw.taiwan_sale(infos)
+        items = tw.taiwan_sale(response)
 
         yield HouseInfos(items)
