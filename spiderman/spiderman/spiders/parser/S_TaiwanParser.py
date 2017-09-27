@@ -4,7 +4,7 @@ import time
 import hashlib
 
 CASEFROM = "Taiwan"
-def taiwan_sale(response):
+def Parse(response):
     global CASEFROM
 
     case_type = ""

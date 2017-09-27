@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
-from lib.wrapper import get_table_schema
+from template import SuperParser
+from wrapper import get_table_schema
 
 import re
 import time

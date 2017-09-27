@@ -3,6 +3,8 @@ TAIWAN_HOUSE_HOME='http://www.twhg.com.tw/object_list-A.php'
 TAIWAN_HOUSE_ROOT='http://www.twhg.com.tw/api/SearchList.php?io5='
 TAIWAN_HOUSE_HOST='http://www.twhg.com.tw'
 
+R_591_HOST='https://rent.591.com.tw/'
+
 # use for post
 TAIWAN_HOUSE_FORMDATA= {
     'sale': {
@@ -12,8 +14,6 @@ TAIWAN_HOUSE_FORMDATA= {
         'paydumeyes': '1',
         'obj' : 'Preset',
     },
-    'rent': {
-    }
 }
 
 TAIWAN_HOUSE_HEADERS = {
