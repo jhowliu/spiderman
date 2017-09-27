@@ -57,7 +57,7 @@ def get_table_schema():
                 'ExpiryDate': '',
                 'Lease': '',
                 'Decorating': '',
-                'ShortRentDeadline':''
+                'ShortRentDeadline':'' 
             },
             'WebHouseCasePart3': {
                 'idx': '',
