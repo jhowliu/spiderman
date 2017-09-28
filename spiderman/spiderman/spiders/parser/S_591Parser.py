@@ -161,7 +161,8 @@ class S591Parser():
             print("cannot find price by class name.")
             return price, unit
 
-        price = float(raw.text.replace(' ', ''))
+        m = re.search('\d+', raw.text)
+        price = float(m.group().strip()) if m else 0.0
         unit = clean.sub('', unit.text)
 
         return price, unit
