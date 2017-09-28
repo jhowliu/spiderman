@@ -1,31 +1,15 @@
 # -*- coding: utf-8 -*-
-from bs4 import BeautifulSoup
-from template import SuperParser
-from wrapper import get_table_schema
-
 import re
 import time
 
-# only keep chinese words
-clean = re.compile(r'[\u064B-\u0652\u06D4\u0670\u0674\u06D5-\u06ED| ]+')
+from template import SuperParser
+from template import punctuation_cleaner, clean
 
-# punctuation filter
-punctuation_cleaner = re.compile(r'[（）()\n ]')
-
-class S591Parser():
-    def __init__(self, content_html, url):
-        self.url = url
-        self.html = content_html
-        self.rent_or_sale = '出售'
-        self.date = time.strftime("%Y-%m-%d")
-        self.time = time.strftime("%H:%M:%S")
-        self.soup = BeautifulSoup(content_html, 'html.parser')
-        self.init()
+class S591Parser(SuperParser):
 
     def init(self):
         self.infos = self.__get_house_infos()
         self.navigations = self.__get_navigationbar()
-        self.id_ = '-'.join(['591', self.get_case_number(), self.date])
 
     def __find_by_class_name(self, tag, class_name):
         raw = self.soup.find(tag, class_=class_name)
@@ -58,6 +42,7 @@ class S591Parser():
         return target
 
     def __get_house_infos(self):
+        infos = {}
         # 591 designer is funny
         key_list = ['info-addr-key', 'info-floor-value', 'detail-house-key']
         value_list = ['info-addr-value', 'info-floor-key', 'detail-house-value']
@@ -69,11 +54,7 @@ class S591Parser():
         for key, value, tag in zip(key_list, value_list, tag_list):
             attributes.extend([raw.text for raw in self.soup.find_all(tag, class_=key)])
             values.extend([raw.text for raw in self.soup.find_all(tag, class_=value)])
-
-        infos = {}
-
         for (key, value) in zip(attributes, values):
-            print("= ".join([key, value]))
             infos[key] = value
 
         return infos
@@ -343,78 +324,3 @@ class S591Parser():
 
         return lat, lng
 
-    def fill_data_into_schema(self):
-        city, district, road = self.get_separating_address(self.get_address())
-        num_of_room, num_of_living, num_of_bath, num_of_balcony = self.get_separating_layout()
-        price, unit = self.get_price()
-        price_per_pings, unit_per_pings = self.get_price_per_pings()
-        lat, lng = self.get_latitude_longtitude()
-
-        schema = get_table_schema()
-
-        # WebHouseCase
-        house_info_key_list = [
-            'idx', 'CaseFrom', 'CaseNo',
-            'CaseName', 'CaseUse', 'SimpAddress',
-            'City', 'District', 'Road',
-            'HouseLayout', 'Rm', 'LivingRm',
-            'BathRm', 'spaceRm', 'TotalPrice',
-            'OrigPrice', 'Unit', 'UnitPrice',
-            'UnitPriceUnit', 'BuildPin', 'LandPin',
-            'CaseUrl', 'RorS', 'HouseAge',
-            'Lat', 'Lng', 'MainPin',
-            'ComUsePin', 'AttachedPin', 'ParkSpace'
-        ]
-
-        house_info_value_list = [
-            self.id_, '591', self.get_case_number(),
-            self.get_case_name(), self.get_house_usage(), self.get_address(),
-            city, district, road,
-            self.get_house_layout(), num_of_room, num_of_living,
-            num_of_bath, num_of_balcony, price,
-            price, unit, price_per_pings,
-            unit_per_pings, self.get_building_pings(), self.get_floor_pings(),
-            self.url, self.rent_or_sale, self.get_house_age(),
-            lat, lng, self.get_main_building_pings(),
-            self.get_public_utilities_pings(), self.get_attached_building_pings(), self.get_parking_space()
-        ]
-
-
-        # WebHouseCasePart2
-        host_info_key_list = [
-            'idx', 'ContactUser', 'ContactStore',
-            'ContactTel', 'ContactRole', 'ContactEMail',
-            'CaseFrom', 'RorS', 'Lease',
-            'Decorating'
-        ]
-
-        host_info_value_list = [
-            self.id_, self.get_host_name(), self.get_host_company(),
-            self.get_host_phonenumber(), self.get_host_role(), self.get_host_mail(),
-            '591', self.rent_or_sale, self.get_lease_state(),
-            self.get_decorating_level()
-        ]
-
-        # WebHouseCasePart3
-        house_pros_key_list = [
-            'idx', 'Direction', 'CaseFrom',
-            'TotalPin', 'RorS', 'PublicRatios',
-            'CMC'
-        ]
-
-        house_pros_value_list = [
-            self.id_, self.get_house_direction(), '591',
-            self.get_building_pings(), self.rent_or_sale, self.get_public_utilities_ratio(),
-            self.get_public_utilities_ratio()
-        ]
-
-        for (key, value) in zip(house_info_key_list, house_info_value_list):
-            schema['WebHouseCase'][key] = value
-
-        for (key, value) in zip(host_info_key_list, host_info_value_list):
-            schema['WebHouseCasePart2'][key] = value
-
-        for (key, value) in zip(house_pros_key_list, house_pros_value_list):
-            schema['WebHouseCasePart3'][key] = value
-
-        return schema

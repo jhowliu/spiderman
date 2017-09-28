@@ -12,7 +12,7 @@ from spiderman.items import HouseInfos
 
 from spiderman.spiders import config
 from spiderman.spiders.utils import spider, worker
-from spiderman.spiders.parser import S_TaiwanParser, S591Parser
+from spiderman.spiders.parser import S_TaiwanParser, S591Parser, R591Parser
 
 
 class MainSpider(scrapy.Spider):
@@ -48,7 +48,7 @@ class MainSpider(scrapy.Spider):
     def start_requests(self):
         start_urls = {
             #'S_Taiwan' : config.TAIWAN_HOUSE_HOME,
-            'R_591' : config.R_591_HOST,
+            #'R_591' : config.R_591_HOST,
             'S_591' : config.S_591_HOST,
         }
 
@@ -96,6 +96,7 @@ class MainSpider(scrapy.Spider):
                 yield FormRequest(url=response.url, callback=self.parse_entries, formdata=formdata, \
                         headers=config.TAIWAN_HOUSE_HEADERS, meta=meta)
 
+        # Sale and Rent have the same control flow at paging
         elif '591' in task:
             final_page = spider.execute_script('return $("a.pageNum-form")')[-1].text.strip()
             logging.info("Final page: %s" % final_page)
@@ -153,19 +154,22 @@ class MainSpider(scrapy.Spider):
 
         if task == 'S_Taiwan':
             infos = response.meta['infos']
-            logging.info("Start parsing %s, title: %s" % (response.url, infos['tit']))
+            logging.info("[%s] Start parsing %s, title: %s" % (task, response.url, infos['tit']))
             items = S_TaiwanParser.Parse(response)
 
             yield HouseInfos(items)
 
         elif task == 'S_591':
             title = response.css('h1.detail-title-content::text').extract_first()
-            logging.info("Start Parsing %s, title: %s" % (response.url, title.strip()))
-            parser = S591Parser(response.body, response.url)
-            schema = parser.fill_data_into_schema()
+            logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title.strip()))
+            parser = S591Parser(response.body, response.url, u'出售', '591')
+            schema = parser.start_parse()
             print(schema)
 
         elif task == 'R_591':
             title = response.css('span.houseInfoTitle::text').extract_first()
-            logging.info("Start Parsing %s, title: %s" % (response.url, title))
+            logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title))
+            parser = R591Parser(response.body, response.url, u'出租', '591')
+            schema = parser.start_parse()
+            print(schema)
 

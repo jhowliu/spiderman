@@ -4,6 +4,7 @@ from wrapper import get_table_schema
 
 import re
 import time
+import hashlib
 
 # only keep chinese words
 clean = re.compile(r'[\u064B-\u0652\u06D4\u0670\u0674\u06D5-\u06ED| ]+')
@@ -12,15 +13,22 @@ clean = re.compile(r'[\u064B-\u0652\u06D4\u0670\u0674\u06D5-\u06ED| ]+')
 punctuation_cleaner = re.compile(r'[,，【】（）()\n\xa0 ]')
 
 class SuperParser(object):
-    def __init__(self, content_html=None, url=None, rent_or_sale=None):
+    def __init__(self, content_html, url, rent_or_sale, casefrom):
         self.url = url
+        self.casefrom = casefrom
         self.html = content_html
         self.date = time.strftime("%Y-%m-%d")
         self.time = time.strftime("%H:%M:%S")
+        self.soup = BeautifulSoup(content_html, 'html.parser')
+        self.rent_or_sale = rent_or_sale
+        self.id_ = hashlib.sha1('%s-%s-%s' % \
+                (casefrom, self.get_case_number, self.date)).hexdigest()
         self.init()
 
     def start_parse(self):
-        pass
+        schema = self.fill_data_into_schema()
+        return schema
+
     def init(self):
         pass
 
@@ -40,7 +48,7 @@ class SuperParser(object):
     def get_price(self):
         pass
     def get_price_per_pings(self):
-        pass
+        return '', ''
     def get_separating_address(self, address):
         pass
     def get_case_name(self):
@@ -88,6 +96,12 @@ class SuperParser(object):
         pass
     def get_latitude_longtitude(self):
         pass
+    def get_expire_date(self):
+        pass
+    def get_short_rent(self):
+        pass
+    def get_management_fee(self):
+        pass
 
     def fill_data_into_schema(self):
         city, district, road = self.get_separating_address(self.get_address())
@@ -109,7 +123,8 @@ class SuperParser(object):
             'UnitPriceUnit', 'BuildPin', 'LandPin',
             'CaseUrl', 'RorS', 'HouseAge',
             'Lat', 'Lng', 'MainPin',
-            'ComUsePin', 'AttachedPin', 'ParkSpace'
+            'ComUsePin', 'AttachedPin', 'ParkSpace',
+            'keyinDate',
         ]
 
         house_info_value_list = [
@@ -122,36 +137,39 @@ class SuperParser(object):
             unit_per_pings, self.get_building_pings(), self.get_floor_pings(),
             self.url, self.rent_or_sale, self.get_house_age(),
             lat, lng, self.get_main_building_pings(),
-            self.get_public_utilities_pings(), self.get_attached_building_pings(), self.get_parking_space()
+            self.get_public_utilities_pings(), self.get_attached_building_pings(), self.get_parking_space(),
+            self.date
         ]
 
 
-        # WebHouseCasePart2 屋主資訊
+        # WebHouseCasePart2 租屋資訊
         host_info_key_list = [
             'idx', 'ContactUser', 'ContactStore',
             'ContactTel', 'ContactRole', 'ContactEMail',
             'CaseFrom', 'RorS', 'Lease',
-            'Decorating'
+            'Decorating', 'keyinDate', 'ExpiryDate',
+            'ContactAddr', 'ShortRentDeadline', 'ManagementFee'
         ]
 
         host_info_value_list = [
             self.id_, self.get_host_name(), self.get_host_company(),
             self.get_host_phonenumber(), self.get_host_role(), self.get_host_mail(),
             self.casefrom, self.rent_or_sale, self.get_lease_state(),
-            self.get_decorating_level()
+            self.get_decorating_level(), self.date, self.get_expire_date(),
+            self.get_address(), self.get_short_rent(), self.get_management_fee()
         ]
 
         # WebHouseCasePart3
         house_pros_key_list = [
             'idx', 'Direction', 'CaseFrom',
             'TotalPin', 'RorS', 'PublicRatios',
-            'CMC'
+            'CMC', 'keyinDate'
         ]
 
         house_pros_value_list = [
             self.id_, self.get_house_direction(), self.casefrom,
             self.get_building_pings(), self.rent_or_sale, self.get_public_utilities_ratio(),
-            self.get_public_utilities_ratio()
+            self.get_public_utilities_ratio(), self.date
         ]
 
         for (key, value) in zip(house_info_key_list, house_info_value_list):

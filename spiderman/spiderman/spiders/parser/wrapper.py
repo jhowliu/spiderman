@@ -2,6 +2,7 @@ def get_table_schema():
     page = {
             'WebHouseCase': {
                 'idx': '',
+                'keyinDate': '',
                 'CaseFrom': '',
                 'CaseNo': '',
                 'CaseName': '',
@@ -45,6 +46,7 @@ def get_table_schema():
             },
             'WebHouseCasePart2': {
                 'idx': '',
+                'keyinDate': '',
                 'ContactUser': '',
                 'ContactStore': '',
                 'ContactTel': '',
@@ -61,6 +63,7 @@ def get_table_schema():
             },
             'WebHouseCasePart3': {
                 'idx': '',
+                'keyinDate': '',
                 'Direction': '',
                 'PrimarySchool': '',
                 'HighSchool': '',
