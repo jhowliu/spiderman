@@ -18,6 +18,22 @@ from spiderman.spiders.parser import S_TaiwanParser, S591Parser, R591Parser
 class MainSpider(scrapy.Spider):
     name = "estate-spider"
 
+    # part: 第幾Part資料,總共有三Part. part = (1,2,3)
+    def __init__(self, part=1, *args, **kwargs):
+        super(MainSpider, self).__init__(*args, **kwargs)
+        self.part = int(part)
+
+        if self.part == -1:
+            self.cities = config.CITIES
+        else:
+            parts = self._divide_parts()
+            self.cities = config.CITIES[parts[self.part-1]:parts[self.part]]
+
+    def _divide_parts(self):
+        total = len(config.CITIES)
+        step = total/3
+        return range(0, total+1, step)
+
     # 591 Start Request Control Flow 
     def _591_start_flow(self, response):
         spider.get(response.url)
@@ -32,7 +48,7 @@ class MainSpider(scrapy.Spider):
 
         options_btn = spider.find_element_by_css_selector(options_css)
 
-        for ix, _ in enumerate(config.CITIES[:1]):
+        for ix, _ in self.cities:
             options_btn.click()
             city_btns = spider.find_elements_by_css_selector(city_css)
 
@@ -48,8 +64,8 @@ class MainSpider(scrapy.Spider):
     def start_requests(self):
         start_urls = {
             #'S_Taiwan' : config.TAIWAN_HOUSE_HOME,
-            #'R_591' : config.R_591_HOST,
-            'S_591' : config.S_591_HOST,
+            'R_591' : config.R_591_HOST,
+            #'S_591' : config.S_591_HOST,
         }
 
         for task, url in start_urls.items():
@@ -57,7 +73,7 @@ class MainSpider(scrapy.Spider):
 
             if task == 'S_Taiwan':
                 formdata = config.TAIWAN_HOUSE_FORMDATA['sale']
-                for ix, city in enumerate(config.CITIES[:1]):
+                for ix, city in self.cities:
                     formdata['city'] = city
                     meta['formdata'] = formdata
 
@@ -107,7 +123,7 @@ class MainSpider(scrapy.Spider):
             worker.get(response.url)
             time.sleep(0.5)
 
-            for i in range(1, 3):
+            for i in range(1, int(final_page)+1):
                 meta['soup'] = BeautifulSoup(worker.execute_script('return document.body.innerHTML'), \
                                     'html.parser')
 
@@ -136,7 +152,7 @@ class MainSpider(scrapy.Spider):
             soup = response.meta['soup']
             entries = soup.select('div.z-hastag div.houseList-item-title a')
 
-            for entry in entries[:2]:
+            for entry in entries:
                 url = config.S_591_HOST+entry['href'].strip()
                 yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta)
 
@@ -144,7 +160,7 @@ class MainSpider(scrapy.Spider):
             soup = response.meta['soup']
             entries = soup.select('li.infoContent h3 a')
 
-            for entry in entries[:2]:
+            for entry in entries:
                 url = 'https:'+entry['href'].strip()
                 yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta)
 
@@ -166,10 +182,13 @@ class MainSpider(scrapy.Spider):
             schema = parser.start_parse()
             print(schema)
 
+            yield HouseInfos(schema['HouseInfos'])
+
         elif task == 'R_591':
             title = response.css('span.houseInfoTitle::text').extract_first()
             logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title))
             parser = R591Parser(response.body, response.url, u'出租', '591')
             schema = parser.start_parse()
-            print(schema)
+
+            yield HouseInfos(schema['HouseInfos'])
 

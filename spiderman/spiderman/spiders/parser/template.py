@@ -124,7 +124,7 @@ class SuperParser(object):
             'CaseUrl', 'RorS', 'HouseAge',
             'Lat', 'Lng', 'MainPin',
             'ComUsePin', 'AttachedPin', 'ParkSpace',
-            'keyinDate',
+            'KeyinDate',
         ]
 
         house_info_value_list = [
@@ -147,7 +147,7 @@ class SuperParser(object):
             'idx', 'ContactUser', 'ContactStore',
             'ContactTel', 'ContactRole', 'ContactEMail',
             'CaseFrom', 'RorS', 'Lease',
-            'Decorating', 'keyinDate', 'ExpiryDate',
+            'Decorating', 'KeyinDate', 'ExpiryDate',
             'ContactAddr', 'ShortRentDeadline', 'ManagementFee'
         ]
 
@@ -163,7 +163,7 @@ class SuperParser(object):
         house_pros_key_list = [
             'idx', 'Direction', 'CaseFrom',
             'TotalPin', 'RorS', 'PublicRatios',
-            'CMC', 'keyinDate'
+            'CMC', 'KeyinDate'
         ]
 
         house_pros_value_list = [
@@ -173,12 +173,12 @@ class SuperParser(object):
         ]
 
         for (key, value) in zip(house_info_key_list, house_info_value_list):
-            schema['WebHouseCase'][key] = value
+            schema['HouseInfos'][key] = value
 
         for (key, value) in zip(host_info_key_list, host_info_value_list):
-            schema['WebHouseCasePart2'][key] = value
+            schema['RentInfos'][key] = value
 
         for (key, value) in zip(house_pros_key_list, house_pros_value_list):
-            schema['WebHouseCasePart3'][key] = value
+            schema['EnvironmentInfos'][key] = value
 
         return schema

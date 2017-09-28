@@ -1,8 +1,8 @@
 def get_table_schema():
     page = {
-            'WebHouseCase': {
+            'HouseInfos': {
                 'idx': '',
-                'keyinDate': '',
+                'KeyinDate': '',
                 'CaseFrom': '',
                 'CaseNo': '',
                 'CaseName': '',
@@ -11,10 +11,6 @@ def get_table_schema():
                 'City': '',
                 'District': '',
                 'Road': '',
-                'CaseClass1': '',
-                'CaseClass2': '',
-                'CaseClass3': '',
-                'CaseClass4': '',
                 'HouseLayout': '',
                 'Rm': '',
                 'LivingRm': '',
@@ -44,9 +40,9 @@ def get_table_schema():
                 'ComUsePin': '',
                 'AttachedPin': ''
             },
-            'WebHouseCasePart2': {
+            'RentInfos': {
                 'idx': '',
-                'keyinDate': '',
+                'KeyinDate': '',
                 'ContactUser': '',
                 'ContactStore': '',
                 'ContactTel': '',
@@ -59,11 +55,11 @@ def get_table_schema():
                 'ExpiryDate': '',
                 'Lease': '',
                 'Decorating': '',
-                'ShortRentDeadline':'' 
+                'ShortRentDeadline':''
             },
-            'WebHouseCasePart3': {
+            'EnvironmentInfos': {
                 'idx': '',
-                'keyinDate': '',
+                'KeyinDate': '',
                 'Direction': '',
                 'PrimarySchool': '',
                 'HighSchool': '',

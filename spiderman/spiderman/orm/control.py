@@ -6,8 +6,8 @@ from spiderman.orm.util import is_exist
 
 def insert_items(item):
 
-    logging.info("<INSERT> - %s" % item['ID'])
-
+    logging.info("<INSERT> - %s" % item['idx'])
+    '''
     value = HouseInfo1(idx=item['ID'],
                        RorS=item['RorS'],
                        KeyinDate=item['DateTime'],
@@ -21,7 +21,7 @@ def insert_items(item):
                        Road=item['Road'],
                        District=item['Zip'],
                        HouseLayout=item['Layout'],
-                       Rm=item['Bed'],
+                       Rm=item['Bed'],dd
                        LivingRm=item['Living'],
                        BathRm=item['Bath'],
                        TotalPrice=item['Price'],
@@ -32,9 +32,12 @@ def insert_items(item):
                        Lat=item['Latitude'],
                        Lng=item['Longtitude'],
                        HouseAge=item['HouseAge'])
+    '''
+
+    value = HouseInfos(**item)
 
     #row = is_exist(HouseInfo1, item['ID'])
-    row = sess.query(HouseInfo1).filter_by(idx=item['ID']).first()
+    row = sess.query(HouseInfos).filter_by(idx=item['idx']).first()
 
     if (not row):
         sess.add(value)
