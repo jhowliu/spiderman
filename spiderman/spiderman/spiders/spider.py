@@ -1,4 +1,4 @@
-# -*- coding=utf-8 -*-
+# -*- coding: utf-8 -*-
 import re
 import json
 import time
@@ -46,20 +46,28 @@ class MainSpider(scrapy.Spider):
             close_btn = spider.find_element_by_css_selector(meta['close_css'])
             close_btn.click()
 
-        options_btn = spider.find_element_by_css_selector(options_css)
+        #options_btn = spider.find_element_by_css_selector(options_css)
 
         for ix, _ in self.cities:
-            options_btn.click()
-            city_btns = spider.find_elements_by_css_selector(city_css)
+
+            spider.execute_script('$("%s")[0].click()' % options_css)
+            time.sleep(0.5)
+            city_btns = spider.execute_script('return $("%s")' % city_css)
 
             if len(city_btns):
                 logging.info("Click %s" % city_btns[ix].text)
-                city_btns[ix].click()
+                meta = {
+                    'city': city_btns[ix].text,
+                    'task': meta['task']
+                }
+
+                spider.execute_script('$("%s")[%d].click()' % (city_css, ix))
+                spider.refresh()
                 time.sleep(1)
 
                 cookies=spider.get_cookies()
-                yield scrapy.Request(url=response.url, cookies=cookies, callback=self.request_pages, \
-                        meta={'task': meta['task']}, dont_filter=True)
+                yield scrapy.Request(url=spider.current_url, cookies=cookies, callback=self.request_pages, \
+                        meta=meta, dont_filter=True)
 
     def start_requests(self):
         start_urls = {
@@ -114,19 +122,22 @@ class MainSpider(scrapy.Spider):
 
         # Sale and Rent have the same control flow at paging
         elif '591' in task:
-            final_page = spider.execute_script('return $("a.pageNum-form")')[-1].text.strip()
-            logging.info("Final page: %s" % final_page)
-
+            worker.get(response.url)
+            # add cookie after load page (if add cookie before load page, that will be fucked)
             for cookie in response.request.cookies :
                 worker.add_cookie({k: cookie[k] for k in cookie.keys() })
+            worker.refresh()
 
-            worker.get(response.url)
-            time.sleep(0.5)
+            time.sleep(1)
+            final_page = worker.execute_script('return $("a.pageNum-form")')[-1].text.strip()
+            logging.info("[%s] Final page: %s" % (meta['city'], final_page))
 
-            for i in range(1, int(final_page)+1):
+            for i in range(0, int(final_page)):
+                logging.info("[%s] page: %d" % (meta['city'], i))
+
                 meta['soup'] = BeautifulSoup(worker.execute_script('return document.body.innerHTML'), \
                                     'html.parser')
-
+                time.sleep(0.5)
                 yield scrapy.Request(url=worker.current_url, callback=self.parse_entries, \
                                 meta=meta, dont_filter=True)
 
@@ -162,6 +173,7 @@ class MainSpider(scrapy.Spider):
 
             for entry in entries:
                 url = 'https:'+entry['href'].strip()
+                #logging.info('START URL: %s' % url)
                 yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta)
 
     # 解析物件內容
@@ -180,7 +192,6 @@ class MainSpider(scrapy.Spider):
             logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title.strip()))
             parser = S591Parser(response.body, response.url, u'出售', '591')
             schema = parser.start_parse()
-            print(schema)
 
             yield HouseInfos(schema['HouseInfos'])
 

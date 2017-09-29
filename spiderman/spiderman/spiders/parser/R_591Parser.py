@@ -13,7 +13,7 @@ class R591Parser(SuperParser):
 
     def __is_key(self, key):
         if key not in self.infos:
-            print('Cannot find the key: %s' % key)
+            #print('Cannot find the key: %s' % key)
             return False
 
         return True
@@ -65,9 +65,6 @@ class R591Parser(SuperParser):
 
         return role
 
-    def get_host_mail(self):
-        mail_pattern = re.compile(r'([\w.]+@[\w]+\.[a-zA-Z]{2,4}\.?[a-zA-Z]{0,4})')
-        pass
     def get_host_company(self):
         raw = find_by_css(self.soup, 'div.auatarSonBox')
         clean_text = punctuation_cleaner.sub('', raw[0].text) if raw else ''
@@ -77,9 +74,6 @@ class R591Parser(SuperParser):
         branch  = m.group(2) if m else ""
 
         return ' '.join([company, branch] )
-
-    def get_community(self):
-        pass
 
     def get_price(self):
         raw = find_by_css(self.soup, 'div.price')
