@@ -19,7 +19,6 @@ class MainSpider(scrapy.Spider):
     name = "591-spider"
 
     # part: 第幾Part資料,總共有三Part. part = (1,2,3)
-
     def __init__(self, part=-1, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
         self.part = int(part)
@@ -92,8 +91,7 @@ class MainSpider(scrapy.Spider):
 
                     meta['soup'] = BeautifulSoup(worker.execute_script('return document.body.innerHTML'), \
                                         'html.parser')
-                    if (not worker.execute_script('$("a.pageNext")[0].click()')): continue
-
+                    worker.execute_script('$("a.pageNext")[0].click()')
                     yield scrapy.Request(url=worker.url, callback=self.parse_entries, \
                                     meta=meta, dont_filter=True)
 
