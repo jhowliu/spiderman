@@ -293,19 +293,19 @@ class S591Parser(SuperParser):
         if house_layout == "":
             return num_of_room, num_of_living, num_of_bath, num_of_balcony
 
-        m = re.search(r'(\d+)房', house_layout)
+        m = re.search(u'(\d+)房', house_layout)
         if m is not None:
             num_of_room = int(m.group(1))
 
-        m = re.search(r'(\d+)廳', house_layout)
+        m = re.search(u'(\d+)廳', house_layout)
         if m is not None:
             num_of_living = int(m.group(1))
 
-        m = re.search(r'(\d+)衛', house_layout)
+        m = re.search(u'(\d+)衛', house_layout)
         if m is not None:
             num_of_bath = int(m.group(1))
 
-        m = re.search(r'(\d+)陽台', house_layout)
+        m = re.search(u'(\d+)陽台', house_layout)
         if m is not None:
             num_of_balcony = int(m.group(1))
 

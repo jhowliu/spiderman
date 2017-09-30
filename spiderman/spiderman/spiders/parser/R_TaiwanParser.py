@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 import re
-
+from bs4 import BeautifulSoup
 from datetime import datetime
 from template import SuperParser, punctuation_cleaner
-from utils import find_by_css, find_by_class_name
+from utils import find_by_css, split_address
 
-class R591Parser(SuperParser):
+class RTaiwanParser(SuperParser):
 
     def init(self):
-        self.navigations = self.__get_navigationbar()
+        #self.navigations = self.__get_navigationbar()
         self.infos = self.__get_house_infos()
 
     def __is_key(self, key):
         if key not in self.infos:
-            #print('Cannot find the key: %s' % key)
+            print('Cannot find the key: %s' % key)
             return False
 
         return True
@@ -21,99 +21,75 @@ class R591Parser(SuperParser):
     def __get_house_infos(self):
         infos = {}
 
-        attr_raw = find_by_css(self.soup, '.labelList .one')
-        value_raw = find_by_css(self.soup, '.labelList .two')
+        attr_raw = find_by_css(self.soup, 'td.td-center')
+        value_raw = find_by_css(self.soup, 'td.td-white')
 
         for attr, value in zip(attr_raw, value_raw):
-            infos[attr.text] = value.text.replace(u'：', '')
-
-
-        rows = find_by_css(self.soup, 'ul.attr li')
-        for row in rows:
-            clean_text = punctuation_cleaner.sub('', row.text)
-            attr, value = clean_text.split(':')
-            infos[attr] = value
+            if attr.text in infos: continue
+            infos[attr.text] = value.text.strip()
 
         return infos
 
-    def __get_navigationbar(self):
-        navigations = []
-        # bs4 不能用css selector 找id
-        raw = self.soup.find('div', { 'id': 'propNav'}).find_all('a')
-
-        if len(raw) == 0:
-            print("cannot find navigationbar by class name.")
-            return navigations
-
-        navigations = [nav.text for nav in raw]
-
-        return navigations
 
     def get_host_name(self):
-        raw = find_by_css(self.soup, 'div.avatarRight i')
-        name = raw[0].text if raw else ""
+        raw = find_by_css(self.soup, 'div.infoblock span')
+        name = raw[0].text if raw else self.get_host_company()
 
         return name
 
-    # need using OCR
     def get_host_phonenumber(self):
-        pass
+        raw = find_by_css(self.soup, 'div.infoblock h2')
+        phone = raw[0].text if raw else ""
+
+        return phone
 
     def get_host_role(self):
-        raw = find_by_css(self.soup, 'div.avatarRight')
-        role = re.search(u'屋主|仲介|代理人', raw[0].text).group() if raw else ""
+        role = u'屋主'
+        company = self.get_host_company()
+        if company != '': role = u'仲介'
 
         return role
 
     def get_host_company(self):
-        raw = find_by_css(self.soup, 'div.auatarSonBox')
-        clean_text = punctuation_cleaner.sub('', raw[0].text) if raw else ''
-        m = re.search(u'公司名：(\W+)分店：(\W+)', clean_text)
+        raw = find_by_css(self.soup, 'div.infoblock h3')
+        company = raw[0].text.strip() if raw else ""
 
-        company = m.group(1) if m else ""
-        branch  = m.group(2) if m else ""
-
-        return ' '.join([company, branch] )
+        return company
 
     def get_price(self):
-        raw = find_by_css(self.soup, 'div.price')
-        price = re.search('\d+', punctuation_cleaner.sub('', raw[0].text)) \
-                  .group() if raw else 0.0
+        key = u'租金'
+        price = self.infos[key] if self.__is_key(key) else "0"
+        price = punctuation_cleaner.sub('', price)
 
-        raw = find_by_css(self.soup, 'div.price b')
-        unit = raw[0].text if raw else u"元/月"
+        price = re.search('\d+', price).group()
 
-        return float(price), unit
+        return float(price), u'元/月'
 
     def get_price_per_pings(self):
         return 0, ''
 
     def get_separating_address(self, address):
-        city = district = road = ''
+        result = split_address(address)
 
-        if len(self.navigations) == 0:
-            print('navigation list is empty')
-            return city, district, road
-
-        city = self.navigations[2]
-        district = self.navigations[3]
-        road = address.replace(city, '').replace(district, '')
-
-        return city, district, road
+        return result['city'], result['area'], result['road']
 
     def get_case_name(self):
-        raw = find_by_css(self.soup, 'span.houseInfoTitle')
-        return raw[0].text if raw else ""
+        case_no = self.get_case_number()
+
+        raw = find_by_css(self.soup, 'div.h1table h1')
+        case_name = raw[0].text.replace(case_no, '') if raw else ''
+        case_name = punctuation_cleaner.sub('', case_name)
+
+        return case_name
 
     def get_case_number(self):
-        m = re.search('(\d+.).html$', self.url)
-        case_number = 'R'+m.group(1) if m else ''
-
+        raw = find_by_css(self.soup, 'div.h1table span.color-gray')
+        case_number = punctuation_cleaner.sub('', raw[0].text) if raw else ''
         return case_number
 
     def get_address(self):
-        raw = find_by_css(self.soup, 'span.addr')
-        addr = raw[0].text if raw else ''
+        key = u'地址'
+        addr = self.infos[key] if self.__is_key(key) else ''
 
         return addr
 
@@ -124,10 +100,16 @@ class R591Parser(SuperParser):
         return pings
 
     def get_house_usage(self):
-        key = u'型態'
+        key = u'類型'
         usage = self.infos[key] if self.__is_key(key) else ''
 
         return usage
+
+    def get_house_age(self):
+        key = u'屋齡'
+        age = self.infos[key] if self.__is_key(key) else ''
+
+        return age
 
     def get_parking_space(self):
         key = u'車位'
@@ -142,14 +124,14 @@ class R591Parser(SuperParser):
         return shortest_rent
 
     def get_house_direction(self):
-        key = u'朝向'
+        key = u'座向朝向'
         direction = self.infos[key] if self.__is_key(key) else ''
 
         return direction
 
     def get_house_layout(self):
         key = u'格局'
-        layout = self.infos[key] if self.__is_key(key) else ''
+        layout = self.infos[key].replace(' ','') if self.__is_key(key) else ''
 
         return layout
 
@@ -195,9 +177,4 @@ class R591Parser(SuperParser):
 
         return lat, lng
 
-    def get_expire_date(self):
-        raw = find_by_css(self.soup, 'span.ft-rt')
-        expire_date = raw[0].text.replace(u'有效期：', '')
-
-        return expire_date
 
