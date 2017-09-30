@@ -124,7 +124,7 @@ class MainSpider(scrapy.Spider):
 
         if task == 'S_591':
             title = response.css('h1.detail-title-content::text').extract_first()
-            logging.info(" %s - Start Parsing %s, title: %s" % (task, response.url, title.strip()))
+            logging.info("%s - Start Parsing %s, title: %s" % (task, response.url, title.strip()))
             parser = S591Parser(response.body, response.url, u'出售', '591')
             schema = parser.start_parse()
 
@@ -132,7 +132,7 @@ class MainSpider(scrapy.Spider):
 
         elif task == 'R_591':
             title = response.css('span.houseInfoTitle::text').extract_first()
-            logging.info(" %s - Start Parsing %s, title: %s" % (task, response.url, title))
+            logging.info("%s - Start Parsing %s, title: %s" % (task, response.url, title))
             parser = R591Parser(response.body, response.url, u'出租', '591')
             schema = parser.start_parse()
 

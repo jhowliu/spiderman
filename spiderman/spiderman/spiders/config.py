@@ -1,20 +1,25 @@
 # -*- coding=utf-8 -*-
-TAIWAN_HOUSE_HOME='http://www.twhg.com.tw/object_list-A.php'
-TAIWAN_HOUSE_ROOT='http://www.twhg.com.tw/api/SearchList.php?io5='
-TAIWAN_HOUSE_HOST='http://www.twhg.com.tw'
+
+S_TAIWAN_API='http://www.twhg.com.tw/api/SearchList.php?io5='
+S_TAIWAN_HOST='http://www.twhg.com.tw'
+R_TAIWAN_API='http://rent.twhg.com.tw/searchList.php'
+R_TAIWAN_HOST='http://rent.twhg.com.tw'
 
 R_591_HOST='https://rent.591.com.tw'
 S_591_HOST='https://sale.591.com.tw'
 
 # use for post
-TAIWAN_HOUSE_FORMDATA= {
-    'sale': {
-        'city': '台北市',
+TAIWAN_FORMDATA= {
+    'S_Taiwan': {
+        'city': u'台北市',
         'usIde': '9',
         'nowpag': '2',
         'paydumeyes': '1',
         'obj' : 'Preset',
     },
+    'R_Taiwan': {
+        'rCountyCity': u'台北市'
+    }
 }
 
 TAIWAN_HOUSE_HEADERS = {
