@@ -37,31 +37,14 @@ class MainSpider(scrapy.Spider):
     def start_requests(self):
         start_urls = {
             'S_Taiwan' : config.S_TAIWAN_HOST,
-            #'R_Taiwan' : config.R_TAIWAN_HOST
+            'R_Taiwan' : config.R_TAIWAN_HOST
         }
 
         for task, url in start_urls.items():
             meta = { 'task': task }
 
             formdata = config.TAIWAN_FORMDATA[task]
-            '''
-            if task == 'S_Taiwan':
-                for ix, city in self.cities:
-                    formdata['city'] = city
-                    meta['formdata'] = formdata
 
-                    url = config.S_TAIWAN_API+str(ix+1)
-                    yield FormRequest(url=url, callback=self.request_pages, formdata=formdata, \
-                            headers=config.TAIWAN_HOUSE_HEADERS, meta=meta)
-            else:
-                for ix, city in self.cities:
-                    formdata['rCountyCity'] = city
-                    meta['formdata'] = formdata
-
-                    url = config.R_TAIWAN_API+'/searchList.php'
-                    yield FormRequest(url=url, callback=self.request_pages, formdata=formdata, \
-                            headers=config.TAIWAN_HOUSE_HEADERS, meta=meta)
-            '''
             for ix, city in self.cities:
                 if task == 'S_Taiwan':
                     formdata['city'] = city
@@ -87,9 +70,9 @@ class MainSpider(scrapy.Spider):
             #formdata = response.meta['formdata']
             data = json.loads(response.body.decode('utf-8'))
 
-            final_page = data['toPag']
+            final_page = int(data['toPag'])
 
-            for page_num in range(1, 3):
+            for page_num in range(1, final_page+1):
                 formdata['nowpag'] = str(page_num)
                 logging.info('%s - %s - Start Parse Page %d/%d' % \
                         (task, meta['city'], page_num, final_page))
@@ -101,7 +84,7 @@ class MainSpider(scrapy.Spider):
             total = response.css('div.pagetotal span.pricered::text').extract_first()
             final_page = int(math.ceil(int(total)/10.0))
 
-            for page_num in range(1, 3):
+            for page_num in range(1, final_page+1):
                 logging.info('%s - %s - Start Parse Page %d/%d' % \
                         (task, meta['city'], page_num, final_page))
 
