@@ -20,10 +20,13 @@ class MainSpider(scrapy.Spider):
 
     # part: 第幾Part資料,總共有三Part. part = (1,2,3)
 
-    def __init__(self, part=1, port=4445, *args, **kwargs):
+    def __init__(self, part=-1, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
         self.part = int(part)
-        self.worker = Worker(port)
+        self.workers = {
+            'R_591' : Worker(port),
+            'S_591' : Worker(int(port)+1)
+        }
 
         if self.part == -1:
             self.cities = config.CITIES
@@ -39,7 +42,7 @@ class MainSpider(scrapy.Spider):
 
     def start_requests(self):
         start_urls = {
-            #'R_591' : config.R_591_HOST,
+            'R_591' : config.R_591_HOST,
             'S_591' : config.S_591_HOST,
         }
 
@@ -59,43 +62,40 @@ class MainSpider(scrapy.Spider):
 
     # 591 Start Request Control Flow 
     def start_591_flow(self, response):
-        print(response.url)
-        self.worker.get(response.url)
-
         meta = response.meta
 
+        task = meta['task']
         options_css = meta['options_css']
         city_css = meta['city_css']
 
+        worker = self.workers[task]
+
+        worker.get(response.url)
+
         if 'close_css' in meta:
-            self.worker.execute_script('$("%s")[0].click()' % close_css)
+            worker.execute_script('$("%s")[0].click()' % meta['close_css'])
 
         for ix, _ in self.cities:
-            self.worker.execute_script('$("%s")[0].click()' % options_css)
+            worker.execute_script('$("%s")[0].click()' % options_css)
 
-            city_btns = self.worker.execute_script('return $("%s")' % city_css)
+            city_btns = worker.execute_script('return $("%s")' % city_css)
 
             if len(city_btns):
                 city = city_btns[ix].text
-                logging.info("click %s" % city)
 
-                self.worker.execute_script('$("%s")[%d].click()' % (city_css, ix))
-                final_page = self.worker.execute_script('return $("a.pageNum-form")')[-1].text.strip()
-
-                logging.info("[%s] Final page: %s" % (city, final_page))
+                worker.execute_script('$("%s")[%d].click()' % (city_css, ix))
+                final_page = worker.execute_script('return $("a.pageNum-form")')[-1].text.strip()
 
                 # sync request pages (move here to solve selenium async problem)
                 for i in range(0, int(final_page)):
-                    logging.info("[%s] page: %d" % (city, i))
+                    logging.info("%s - %s - Page: %d/%s" % (task, city, i+1, final_page))
 
-                    meta['soup'] = BeautifulSoup(self.worker.execute_script('return document.body.innerHTML'), \
+                    meta['soup'] = BeautifulSoup(worker.execute_script('return document.body.innerHTML'), \
                                         'html.parser')
-                    self.worker.execute_script('$("a.pageNext")[0].click()')
+                    if (not worker.execute_script('$("a.pageNext")[0].click()')): continue
 
-                    yield scrapy.Request(url=self.worker.url, callback=self.parse_entries, \
+                    yield scrapy.Request(url=worker.url, callback=self.parse_entries, \
                                     meta=meta, dont_filter=True)
-
-
 
     # 取得每頁的物件PAGE
     def parse_entries(self, response):
@@ -124,7 +124,7 @@ class MainSpider(scrapy.Spider):
 
         if task == 'S_591':
             title = response.css('h1.detail-title-content::text').extract_first()
-            logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title.strip()))
+            logging.info(" %s - Start Parsing %s, title: %s" % (task, response.url, title.strip()))
             parser = S591Parser(response.body, response.url, u'出售', '591')
             schema = parser.start_parse()
 
@@ -132,7 +132,7 @@ class MainSpider(scrapy.Spider):
 
         elif task == 'R_591':
             title = response.css('span.houseInfoTitle::text').extract_first()
-            logging.info("[%s] Start Parsing %s, title: %s" % (task, response.url, title))
+            logging.info(" %s - Start Parsing %s, title: %s" % (task, response.url, title))
             parser = R591Parser(response.body, response.url, u'出租', '591')
             schema = parser.start_parse()
 

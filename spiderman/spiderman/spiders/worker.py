@@ -21,14 +21,33 @@ class Worker(object):
         """ SETTER """
         self._url = value
 
-    def execute_script(self, script, implicit_waiting=0.5):
+    def retries(method):
+        def wrapper(*args, **kw):
+            retries = 3
+
+            while retries:
+                try:
+                    result = method(*args, **kw)
+                    return result
+                except Exception as ex:
+                    print(repr(ex))
+                    retries-=1
+
+            return False
+
+        return wrapper
+
+    @retries
+    def execute_script(self, script, implicit_waiting=1):
         result = self.worker.execute_script(script)
         time.sleep(implicit_waiting)
         return result
 
-    def get(self, url, implicit_waiting=0.5):
+    def get(self, url, implicit_waiting=1):
         self.url = url
         self.worker.get(url)
         time.sleep(implicit_waiting)
 
         return True
+
+
