@@ -17,22 +17,11 @@ from spiderman.spiders.parser import STaiwanParser, RTaiwanParser
 class MainSpider(scrapy.Spider):
     name = "tw-spider"
 
-    # part: 第幾Part資料,總共有三Part. part = (1,2,3)
-    def __init__(self, part=-1, port=4445, *args, **kwargs):
+    def __init__(self, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
-        self.part = int(part)
         self.worker = Worker(port)
 
-        if self.part == -1:
-            self.cities = config.CITIES
-        else:
-            parts = self._divide_parts()
-            self.cities = config.CITIES[parts[self.part-1]:parts[self.part]]
-
-    def _divide_parts(self):
-        total = len(config.CITIES)
-        step = total/3
-        return range(0, total+1, step)
+        self.cities = config.CITIES
 
     def start_requests(self):
         start_urls = {
