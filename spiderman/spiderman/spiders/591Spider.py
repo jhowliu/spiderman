@@ -20,7 +20,6 @@ class MainSpider(scrapy.Spider):
 
     def __init__(self, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
-        self.part = int(part)
         self.workers = {
             'R_591' : Worker(port),
             'S_591' : Worker(int(port)+1)
