@@ -13,7 +13,7 @@ class RTaiwanParser(SuperParser):
 
     def __is_key(self, key):
         if key not in self.infos:
-            print('Cannot find the key: %s' % key)
+            #print('Cannot find the key: %s' % key)
             return False
 
         return True
@@ -117,11 +117,6 @@ class RTaiwanParser(SuperParser):
 
         return parking_space
 
-    def get_short_rent(self):
-        key = u'最短租期'
-        shortest_rent = self.infos[key] if self.__is_key(key) else ''
-
-        return shortest_rent
 
     def get_house_direction(self):
         key = u'座向朝向'

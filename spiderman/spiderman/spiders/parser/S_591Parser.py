@@ -15,7 +15,6 @@ class S591Parser(SuperParser):
         raw = self.soup.find(tag, class_=class_name)
 
         if raw is None:
-            print("there is no class name: %s" % class_name)
             return None
 
         return raw
