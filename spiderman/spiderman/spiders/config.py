@@ -8,6 +8,9 @@ R_TAIWAN_HOST='http://rent.twhg.com.tw'
 R_591_HOST='https://rent.591.com.tw'
 S_591_HOST='https://sale.591.com.tw'
 
+R_SINYI_API='http://rent.sinyi.com.tw/AJAX/ajax_searchItem.php'
+R_SINYI_HOST='http://rent.sinyi.com.tw'
+
 # use for post
 TAIWAN_FORMDATA= {
     'S_Taiwan': {
