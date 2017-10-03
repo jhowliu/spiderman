@@ -3,3 +3,4 @@ MySQL-python==1.2.5
 SQLAlchemy==1.1.14
 bs4==0.0.1
 selenium==3.6.0
+requests==2.18.4
