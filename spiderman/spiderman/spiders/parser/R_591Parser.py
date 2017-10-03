@@ -13,7 +13,6 @@ class R591Parser(SuperParser):
 
     def __is_key(self, key):
         if key not in self.infos:
-            #print('Cannot find the key: %s' % key)
             return False
 
         return True

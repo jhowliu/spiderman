@@ -18,7 +18,7 @@ class MainSpider(scrapy.Spider):
     name = "tw-spider"
 
     # part: 第幾Part資料,總共有三Part. part = (1,2,3)
-    def __init__(self, part=1, port=4445, *args, **kwargs):
+    def __init__(self, part=-1, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
         self.part = int(part)
         self.worker = Worker(port)
@@ -51,7 +51,7 @@ class MainSpider(scrapy.Spider):
                     url = config.S_TAIWAN_API+str(ix+1)
                 else:
                     formdata['rCountyCity'] = city
-                    url = config.R_TAIWAN_API+'/searchList.php'
+                    url = config.R_TAIWAN_API
 
                 meta['formdata'] = formdata
                 meta['city'] = city
@@ -78,7 +78,7 @@ class MainSpider(scrapy.Spider):
                         (task, meta['city'], page_num, final_page))
 
                 yield FormRequest(url=response.url, callback=self.parse_entries, formdata=formdata, \
-                        headers=config.TAIWAN_HOUSE_HEADERS, meta=meta)
+                        headers=config.TAIWAN_HOUSE_HEADERS, meta=meta, dont_filter=True)
 
         else:
             total = response.css('div.pagetotal span.pricered::text').extract_first()
@@ -89,7 +89,6 @@ class MainSpider(scrapy.Spider):
                         (task, meta['city'], page_num, final_page))
 
                 url = config.R_TAIWAN_API+'?page=%d' % page_num
-
                 yield scrapy.Request(url=url, cookies=response.request.cookies, \
                         callback=self.parse_entries, meta=meta, dont_filter=True)
 
@@ -113,7 +112,7 @@ class MainSpider(scrapy.Spider):
 
             for path in paths:
                 url = '/'.join([config.R_TAIWAN_HOST, path])
-                yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta)
+                yield scrapy.Request(url=url, callback=self.parse_fields, meta=meta, dont_filter=True)
 
 
     # 解析物件內容

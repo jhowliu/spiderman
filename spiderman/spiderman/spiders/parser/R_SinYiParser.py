@@ -5,15 +5,13 @@ from datetime import datetime
 from template import SuperParser, punctuation_cleaner
 from utils import find_by_css, split_address
 
-class RTaiwanParser(SuperParser):
+class RSinYiParser(SuperParser):
 
     def init(self):
-        #self.navigations = self.__get_navigationbar()
         self.infos = self.__get_house_infos()
 
     def __is_key(self, key):
         if key not in self.infos:
-            #print('Cannot find the key: %s' % key)
             return False
 
         return True
@@ -21,38 +19,47 @@ class RTaiwanParser(SuperParser):
     def __get_house_infos(self):
         infos = {}
 
-        attr_raw = find_by_css(self.soup, 'td.td-center')
-        value_raw = find_by_css(self.soup, 'td.td-white')
+        attr_raw = find_by_css(self.soup, '#mainInfo th')
+        value_raw = find_by_css(self.soup, '#mainInfo td')
 
         for attr, value in zip(attr_raw, value_raw):
-            if attr.text in infos: continue
-            infos[attr.text] = value.text.strip()
+            key = attr.text.replace(u'\u3000', '')
+
+            if key in infos: continue
+            infos[key] = value.text.strip()
 
         return infos
 
 
     def get_host_name(self):
-        raw = find_by_css(self.soup, 'div.infoblock span')
-        name = raw[0].text if raw else self.get_host_company()
+        raw = find_by_css(self.soup, 'div.landlord')
+        name = raw[0].text if raw else ''
 
         return name
 
     def get_host_phonenumber(self):
-        raw = find_by_css(self.soup, 'div.infoblock h2')
-        phone = raw[0].text if raw else ""
+        phone = ''
+        raws = find_by_css(self.soup, '.tel span')
+        for raw in raws:
+            text = raw['class'][0]
+            m = re.search('\d', text)
+            phone += m.group() if m else ''
 
         return phone
 
     def get_host_role(self):
-        role = u'屋主'
-        company = self.get_host_company()
-        if company != '': role = u'仲介'
+        raw = find_by_css(self.soup, '.status')
+        role = raw[0].text if raw else ''
+
+        role = u'屋主' if u'房東' in role else '仲介'
 
         return role
 
     def get_host_company(self):
-        raw = find_by_css(self.soup, 'div.infoblock h3')
-        company = raw[0].text.strip() if raw else ""
+        company = ''
+        if self.get_host_role() == u'仲介':
+            raw = find_by_css('#sideMenu section li span')
+            company = ' '.join([self.get_host_name, raw[-1].text])
 
         return company
 
@@ -74,17 +81,16 @@ class RTaiwanParser(SuperParser):
         return result['city'], result['area'], result['road']
 
     def get_case_name(self):
-        case_no = self.get_case_number()
-
-        raw = find_by_css(self.soup, 'div.h1table h1')
-        case_name = raw[0].text.replace(case_no, '') if raw else ''
+        raw = find_by_css(self.soup, 'div.top h1')
+        case_name = raw[0].text if raw else ''
         case_name = punctuation_cleaner.sub('', case_name)
 
         return case_name
 
     def get_case_number(self):
-        raw = find_by_css(self.soup, 'div.h1table span.color-gray')
-        case_number = punctuation_cleaner.sub('', raw[0].text) if raw else ''
+        m = re.search('itemid=([a-zA-Z0-9]+)', self.url)
+        case_number = m.group(1) if m else ''
+
         return case_number
 
     def get_address(self):
@@ -94,7 +100,7 @@ class RTaiwanParser(SuperParser):
         return addr
 
     def get_building_pings(self):
-        key = u'坪數'
+        key = u'建物坪數'
         pings = self.infos[key] if self.__is_key(key) else ''
 
         return pings
@@ -117,6 +123,11 @@ class RTaiwanParser(SuperParser):
 
         return parking_space
 
+    def get_short_rent(self):
+        key = u'最短租期'
+        short_rent = self.infos[key] if self.__is_key(key) else ''
+
+        return short_rent
 
     def get_house_direction(self):
         key = u'座向朝向'
@@ -157,18 +168,21 @@ class RTaiwanParser(SuperParser):
         if m is not None:
             num_of_bath = int(m.group(1))
 
-        m = re.search(u'(\d+)陽台', house_layout)
+        m = re.search(u'(\d+)室', house_layout)
         if m is not None:
             num_of_balcony = int(m.group(1))
 
         return num_of_room, num_of_living, num_of_bath, num_of_balcony
 
     def get_latitude_longtitude(self):
-        lat_lng_pattern = re.compile(r'q=(\d.*?),(\d.*?)&')
-        m = lat_lng_pattern.search(self.html)
+        raw = find_by_css(self.soup, '#static_map2')
+        text = raw[0]['src']
 
-        lat = float(m.group(1)) if m else 0
-        lng = float(m.group(2)) if m else 0
+        lat_lng_pattern = re.compile(r'(\d+\.\d+)_(\d+\.\d+).png')
+        m = lat_lng_pattern.search(text)
+
+        lat = float(m.group(1)) if m else 0.
+        lng = float(m.group(2)) if m else 0.
 
         return lat, lng
 

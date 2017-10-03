@@ -1,4 +1,4 @@
-# -*- coding=utf-8 -*-
+# -*- coding:utf-8 -*-
 import re
 import time
 
@@ -18,7 +18,7 @@ class STaiwanParser(SuperParser):
 
     def __is_key(self, key):
         if key not in self.infos:
-            print('Cannot find the key: %s' % key)
+            #print('Cannot find the key: %s' % key)
             return False
 
         return True
