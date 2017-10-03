@@ -41,7 +41,7 @@ class MainSpider(scrapy.Spider):
 
     def start_requests(self):
         start_urls = {
-            'R_591' : config.R_591_HOST,
+            #'R_591' : config.R_591_HOST,
             'S_591' : config.S_591_HOST,
         }
 
@@ -69,13 +69,13 @@ class MainSpider(scrapy.Spider):
 
         worker = self.workers[task]
 
-        worker.get(response.url)
-
-        if 'close_css' in meta:
-            worker.execute_script('$("%s")[0].click()' % meta['close_css'])
 
         for ix, _ in self.cities:
+            worker.get(response.url)
             worker.execute_script('$("%s")[0].click()' % options_css)
+
+            if 'close_css' in meta:
+                worker.execute_script('$("%s")[0].click()' % meta['close_css'])
 
             city_btns = worker.execute_script('return $("%s")' % city_css)
 
@@ -83,17 +83,30 @@ class MainSpider(scrapy.Spider):
                 city = city_btns[ix].text
 
                 worker.execute_script('$("%s")[%d].click()' % (city_css, ix))
-                final_page = worker.execute_script('return $("a.pageNum-form")')[-1].text.strip()
+
+                final_page = worker.execute_script('return $("a.pageNum-form")', 0.25)
+                final_page = final_page[-1].text.strip() if len(final_page) else 0
 
                 # sync request pages (move here to solve selenium async problem)
-                for i in range(0, int(final_page)):
+                for i in range(1, int(final_page)):
                     logging.info("%s - %s - Page: %d/%s" % (task, city, i+1, final_page))
 
-                    meta['soup'] = BeautifulSoup(worker.execute_script('return document.body.innerHTML'), \
-                                        'html.parser')
-                    worker.execute_script('$("a.pageNext")[0].click()')
+                    html = worker.execute_script('return document.body.innerHTML', 0.25)
+
+                    if (not html): break
+
+                    meta['soup'] = BeautifulSoup(html, 'html.parser')
+
                     yield scrapy.Request(url=worker.url, callback=self.parse_entries, \
                                     meta=meta, dont_filter=True)
+
+                    clicked = worker.execute_script('$("a.pageNum-form:contains(%d)")[0].click()' % (i+1), 0.25)
+                    if (clicked == False): break
+
+            worker.reopen()
+
+        worker.close()
+
 
     # 取得每頁的物件PAGE
     def parse_entries(self, response):
