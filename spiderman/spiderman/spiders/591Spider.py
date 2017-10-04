@@ -65,14 +65,14 @@ class MainSpider(scrapy.Spider):
 
         for ix, _ in self.cities:
             retry_times = 3
-
+            # make get website more robust
             while retry_times > 0:
                 worker.get(response.url)
                 option_clicked = worker.execute_script('$("%s")[0].click()' % options_css)
-
+                # If failed to get option object, go to reopen selenium and wait 10 mins.
                 if option_clicked != False: break
 
-                logging.info('Selenium has problem, wait for 10 mins to resume.')
+                logging.warning('Selenium has problem, wait for 10 mins to resume.')
                 worker.reopen()
                 retry_times-=1
                 time.sleep(600)
@@ -97,7 +97,7 @@ class MainSpider(scrapy.Spider):
                     logging.info("%s - %s - Page: %d/%s" % (task, city, i+1, final_page))
 
                     html = worker.execute_script('return document.body.innerHTML', 0.25)
-
+                    # If failed to get html page, just give up current city to continue crawling.
                     if (html == False): break
 
                     meta['soup'] = BeautifulSoup(html, 'html.parser')
@@ -106,10 +106,12 @@ class MainSpider(scrapy.Spider):
                                     meta=meta, dont_filter=True)
 
                     clicked = worker.execute_script('$("a.pageNum-form:contains(%d)")[0].click()' % (i+1), 0.25)
+                    # If failed to get click button, just give up current city to continue crawling.
                     if (clicked == False): break
 
+            # threw up the old selenium and open the new after current city crawling over
             worker.reopen()
-
+        # make sure selenium closed
         worker.close()
 
 
