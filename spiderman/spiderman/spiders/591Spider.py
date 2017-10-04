@@ -64,8 +64,18 @@ class MainSpider(scrapy.Spider):
         worker = self.workers[task]
 
         for ix, _ in self.cities:
-            worker.get(response.url)
-            worker.execute_script('$("%s")[0].click()' % options_css)
+            retry_times = 3
+
+            while retry_times > 0:
+                worker.get(response.url)
+                option_clicked = worker.execute_script('$("%s")[0].click()' % options_css)
+
+                if option_clicked != False: break
+
+                logging.info('Selenium has problem, wait for 10 mins to resume.')
+                worker.reopen()
+                retry_times-=1
+                time.sleep(600)
 
             if 'close_css' in meta:
                 worker.execute_script('$("%s")[0].click()' % meta['close_css'])
@@ -88,7 +98,7 @@ class MainSpider(scrapy.Spider):
 
                     html = worker.execute_script('return document.body.innerHTML', 0.25)
 
-                    if (not html): break
+                    if (html == False): break
 
                     meta['soup'] = BeautifulSoup(html, 'html.parser')
 
