@@ -98,12 +98,10 @@ class MainSpider(scrapy.Spider):
 
                     html = worker.execute_script('return document.body.innerHTML', 0.25)
                     # If failed to get html page, just give up current city to continue crawling.
-                    if (html == False): break
-
-                    meta['soup'] = BeautifulSoup(html, 'html.parser')
-
-                    yield scrapy.Request(url=worker.url, callback=self.parse_entries, \
-                                    meta=meta, dont_filter=True)
+                    if (html):
+                        meta['soup'] = BeautifulSoup(html, 'html.parser')
+                        yield scrapy.Request(url=worker.url, callback=self.parse_entries, \
+                                        meta=meta, dont_filter=True)
 
                     clicked = worker.execute_script('$("a.pageNum-form:contains(%d)")[0].click()' % (i+1), 0.25)
                     # If failed to get click button, just give up current city to continue crawling.
