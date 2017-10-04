@@ -17,19 +17,25 @@ from spiderman.spiders.parser import STaiwanParser, RTaiwanParser
 class MainSpider(scrapy.Spider):
     name = "tw-spider"
 
-    def __init__(self, port=4445, *args, **kwargs):
+    def __init__(self, port=4445, RorS='ALL', *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
         self.worker = Worker(port)
 
         self.cities = config.CITIES
 
-    def start_requests(self):
-        start_urls = {
+        self.start_urls = {
             'S_Taiwan' : config.S_TAIWAN_HOST,
             'R_Taiwan' : config.R_TAIWAN_HOST
         }
 
-        for task, url in start_urls.items():
+        if RorS == 'S':
+            self.start_urls.pop('R_Taiwan', None)
+        elif RorS == 'R':
+            self.start_urls.pop('S_Taiwan', None)
+
+    def start_requests(self):
+
+        for task, url in self.start_urls.items():
             meta = { 'task': task }
 
             formdata = config.TAIWAN_FORMDATA[task]
