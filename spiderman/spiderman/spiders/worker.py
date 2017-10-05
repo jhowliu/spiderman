@@ -36,6 +36,9 @@ class Worker(object):
                     return result
                 except Exception as ex:
                     traceback.print_exc()
+                    print('\n\nSleep 10mins to refresh page\n')
+                    time.sleep(600)
+                    self.worker.refresh()
                     retries-=1
             return False
         return wrapper
