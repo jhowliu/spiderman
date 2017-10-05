@@ -23,7 +23,7 @@ class Worker(object):
         self._url = value
 
     def reopen(self):
-        self.close()
+        self.quit()
         self.worker = webdriver.Remote(self.target, desired_capabilities=webdriver.DesiredCapabilities.CHROME)
 
     def retries(method):
@@ -56,7 +56,7 @@ class Worker(object):
         return True
 
     def close(self):
-        self.worker.close()
+        self.worker.quit()
 
         return True
 
