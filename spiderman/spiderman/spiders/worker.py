@@ -27,12 +27,12 @@ class Worker(object):
         self.worker = webdriver.Remote(self.target, desired_capabilities=webdriver.DesiredCapabilities.CHROME)
 
     def retries(method):
-        def wrapper(*args, **kw):
+        def wrapper(self, *args, **kw):
             retries = 3
 
             while retries:
                 try:
-                    result = method(*args, **kw)
+                    result = method(self, *args, **kw)
                     return result
                 except Exception as ex:
                     traceback.print_exc()
