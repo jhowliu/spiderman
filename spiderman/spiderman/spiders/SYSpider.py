@@ -17,11 +17,9 @@ from spiderman.spiders.parser import RSinYiParser
 
 class MainSpider(scrapy.Spider):
     name = "sy-spider"
-
-    # part: 第幾Part資料,總共有三Part. part = (1,2,3)
     def __init__(self, port=4445, *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
-        self.worker = Worker(port)
+        #self.worker = Worker(port)
 
         self.cities = self._get_cities()
 

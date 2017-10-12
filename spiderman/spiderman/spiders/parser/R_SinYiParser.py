@@ -78,7 +78,11 @@ class RSinYiParser(SuperParser):
     def get_separating_address(self, address):
         result = split_address(address)
 
-        return result['city'], result['area'], result['road']
+        city = result['city'] if 'city' in result else ''
+        area = result['city'] if 'area' in result else ''
+        road = result['road'] if 'road' in result else ''
+
+        return city, area, road
 
     def get_case_name(self):
         raw = find_by_css(self.soup, 'div.top h1')

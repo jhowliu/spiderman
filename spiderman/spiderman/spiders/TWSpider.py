@@ -19,7 +19,7 @@ class MainSpider(scrapy.Spider):
 
     def __init__(self, port=4445, RorS='ALL', *args, **kwargs):
         super(MainSpider, self).__init__(*args, **kwargs)
-        self.worker = Worker(port)
+        #self.worker = Worker(port)
 
         self.cities = config.CITIES
 
