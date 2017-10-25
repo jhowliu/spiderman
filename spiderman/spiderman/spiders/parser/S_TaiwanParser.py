@@ -126,7 +126,7 @@ class STaiwanParser(SuperParser):
 
     def get_house_layout(self):
         room, living, bath, _ = self.get_separating_layout()
-        layout = '%d房%d廳%d衛'
+        layout = '%d房%d廳%d衛' % (room, living, bath)
 
         return layout
 
