@@ -142,7 +142,7 @@ class STaiwanParser(SuperParser):
         num_of_room = self.infos['bed'] if self.__is_key('bed') else 0
         num_of_bath = self.infos['bat'] if self.__is_key('bed') else 0
 
-        return num_of_room, num_of_living, num_of_bath, 0
+        return int(float(num_of_room)), int(float(num_of_living)), int(float(num_of_bath)), 0
 
     def get_latitude_longtitude(self):
         lat = self.infos['x'] if self.__is_key('x') else 0.0
